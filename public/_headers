@@ -1,0 +1,7 @@
+/entry.js
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=60
+
+/store.manifest.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=60

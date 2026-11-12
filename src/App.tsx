@@ -20,7 +20,13 @@ const STORAGE_KEY_CUSTOM_CHALLENGES = 'say_the_word_custom_challenges_v1';
 const STORAGE_KEY_LANGUAGE = 'say_the_word_language_v1';
 const STORAGE_KEY_THEME = 'say_the_word_theme_v1';
 
-export default function App() {
+export interface StoreAppProps {
+  userId?: string;
+  onExit?: () => void;
+  onScore?: (score: number) => void;
+}
+
+export default function App(_props: StoreAppProps) {
   const [activeTab, setActiveTab] = useState<'play' | 'create' | 'customList'>('play');
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(null);

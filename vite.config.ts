@@ -1,12 +1,53 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
-export default defineConfig(() => {
+export default defineConfig(({ command }) => {
+  const isBuild = command === 'build';
+
   return {
-    base: './',
-    plugins: [react(), tailwindcss()],
+    base: process.env.VITE_APP_ORIGIN || '/',
+    ...(isBuild
+      ? {
+          define: {
+            'process.env.NODE_ENV': JSON.stringify('production'),
+          },
+        }
+      : {}),
+    plugins: [
+      react(),
+      tailwindcss(),
+      ...(isBuild
+        ? [
+            cssInjectedByJsPlugin({
+              injectCodeFunction: function injectCSS(cssCode: string) {
+                try {
+                  if (typeof document !== 'undefined') {
+                    const elementStyle = document.createElement('style');
+                    elementStyle.setAttribute('data-sub-app-style', 'true');
+                    elementStyle.appendChild(document.createTextNode(cssCode));
+                    document.head.appendChild(elementStyle);
+                  }
+                } catch (e) {
+                  console.error('vite-plugin-css-injected-by-js', e);
+                }
+              },
+            }),
+          ]
+        : []),
+    ],
+    build: {
+      lib: {
+        entry: 'src/store-entry.tsx',
+        formats: ['es'],
+        fileName: () => 'entry.js',
+      },
+      rollupOptions: {
+        external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),
