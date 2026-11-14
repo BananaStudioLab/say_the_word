@@ -4,8 +4,9 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   const isBuild = command === 'build';
+  const isStore = mode === 'store';
 
   return {
     base: process.env.VITE_APP_ORIGIN || '/',
@@ -19,7 +20,7 @@ export default defineConfig(({ command }) => {
     plugins: [
       react(),
       tailwindcss(),
-      ...(isBuild
+      ...(isStore
         ? [
             cssInjectedByJsPlugin({
               injectCodeFunction: function injectCSS(cssCode: string) {
@@ -38,16 +39,21 @@ export default defineConfig(({ command }) => {
           ]
         : []),
     ],
-    build: {
-      lib: {
-        entry: 'src/store-entry.tsx',
-        formats: ['es'],
-        fileName: () => 'entry.js',
-      },
-      rollupOptions: {
-        external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
-      },
-    },
+    build: isStore
+      ? {
+          emptyOutDir: false,
+          lib: {
+            entry: 'src/store-entry.tsx',
+            formats: ['es'],
+            fileName: () => 'entry.js',
+          },
+          rollupOptions: {
+            external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
+          },
+        }
+      : {
+          emptyOutDir: true,
+        },
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),
